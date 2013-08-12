@@ -1,0 +1,31 @@
+<p class="lead">Test Interface for the vast-client-js library</p>
+
+<div class="input-group">
+    <input type="text" class="form-control" placeholder="Put your VAST url here"
+        ng-model="vastUrl">
+    <span class="input-group-btn">
+        <button class="btn btn-default" type="button"
+            ng-click="goClickHandler()"
+            on-enter="goClickHandler()">
+            Go!
+        </button>
+    </span>
+</div>
+
+<div class="player-container">
+    <video id="player"></video>
+</div>
+
+<div id="checklist" class="well">
+    <div class="checkbox"
+        ng-repeat="entry in logs"
+        ng-class="{ 'started': entry.started, 'success': (entry.success == true), 'failed': (entry.success == false), 'error': !!entry.error }">
+        <label>
+            <!-- <input type="checkbox" name="{{ entry.code }}"/> -->
+            {{ entry.label }}
+        </label>
+        <small class="checklist-error" ng-show="entry.error">
+            <strong>Message:</strong> <code>{{ entry.error.message }}</code>
+        </small>
+    </p>
+</div>
