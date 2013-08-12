@@ -27,5 +27,41 @@
         <small class="checklist-error" ng-show="entry.error">
             <strong>Message:</strong> <code>{{ entry.error.message }}</code>
         </small>
+        <a data-toggle="modal" href="#errorModal" class="btn btn-warning btn-xs"
+            ng-show="entry.error.stack">Stack</a>
     </p>
 </div>
+
+
+<div class="modal fade" id="errorModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">{{ currentError.message }}</h4>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <td><strong>Message</strong></td>
+                            <!-- <td><strong>Time</strong></td> -->
+                            <td><strong>Duration</strong></td>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr ng-repeat="step in currentError.stack" ng-class="{ 'success': ($index < currentError.stack.length - 1), 'danger': ($index == currentError.stack.length - 1) }">
+                            <td>{{ step.message }}</td>
+                            <!-- <td>{{ step.time | date:'medium' }}</td> -->
+                            <td>{{ step.lastStepDuration }} ms</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->

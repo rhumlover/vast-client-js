@@ -59,6 +59,7 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
             },
             entries = [
                 ['VALID_URL', 'Valid URL'],
+                ['VALID_XML', 'Valid XML response'],
                 ['VAST_RESPONSE', 'Valid VAST response'],
                 ['VAST_AD', 'Valid VAST ad'],
             ],
@@ -120,6 +121,8 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
                 var entry = this.getEntry(key);
                 entry.success = false;
                 entry.error = error;
+
+                $scope.$parent.currentError = error;
             }
         }
     })();
@@ -217,19 +220,45 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
         if (vastUrl = $scope.vastUrl)
         {
             Log.start('VALID_URL');
+            Log.start('VALID_XML');
 
-            $.get(vastUrl)
-                .done(function()
+            var onParseError = function(e)
+            {
+                Log.setError('VALID_XML', { message: 'XML document doesn\'t seems to be wellformed' });
+                $scope.$apply();
+            }
+            var onRequestFail = function(e)
+            {
+                var message = e.statusText + ' (' + e.status + ')';
+                Log.setError('VALID_URL', { message: message });
+                Log.setError('VALID_XML', { message: '---' });
+                $scope.$apply();
+            }
+            var onRequestSuccess = function(e)
+            {
+                Log.setSuccess('VALID_XML');
+                parseVast(vastUrl);
+                $scope.$apply();
+            }
+
+            $.get(vastUrl).always(function(res, status, evt)
+            {
+                switch (status)
                 {
-                    Log.setSuccess('VALID_URL');
-                    parseVast(vastUrl);
-                    $scope.$apply();
-                })
-                .fail(function(e)
-                {
-                    Log.setError('VALID_URL', { status: e.status, message: e.statusText});
-                    $scope.$apply();
-                });
+                    case 'success':
+                        Log.setSuccess('VALID_URL');
+                        onRequestSuccess.call(null, evt);
+                        break;
+
+                    case 'parsererror':
+                        Log.setSuccess('VALID_URL');
+                        onParseError.call(null, evt);
+                        break;
+
+                    default:
+                        onParseError.call(null, evt);
+                }
+            });
             /*
             Angular way, but problems with `Access-Control-Allow-Headers "X-Requested-With"`
             ---------------------------------

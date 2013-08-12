@@ -46,6 +46,10 @@ body
     border-radius: 3px;
 }
 
+#checklist
+{
+    position: relative;
+}
 #checklist .checkbox
 {
     min-height: 25px;
@@ -104,4 +108,11 @@ body
 .checklist-error
 {
     display: block;
+}
+#checklist a[data-toggle="modal"]
+{
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    padding: 0 4px !important;
 }
