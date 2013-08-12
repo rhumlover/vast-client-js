@@ -231,7 +231,7 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
             {
                 var message = e.statusText + ' (' + e.status + ')';
                 Log.setError('VALID_URL', { message: message });
-                Log.setError('VALID_XML', { message: '---' });
+                Log.setError('VALID_XML', { message: 'Unable to fetch XML source' });
                 $scope.$apply();
             }
             var onRequestSuccess = function(e)
@@ -243,6 +243,7 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
 
             $.get(vastUrl).always(function(res, status, evt)
             {
+                // console.log(arguments);
                 switch (status)
                 {
                     case 'success':
@@ -255,8 +256,10 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
                         onParseError.call(null, evt);
                         break;
 
+                    case 'error':
+                        evt = res;
+                        onRequestFail.call(null, evt);
                     default:
-                        onParseError.call(null, evt);
                 }
             });
             /*
@@ -287,13 +290,10 @@ App.directive('onEnter', ['KeyboardHandler', function(KeyboardHandler)
 {
     var linker = function(scope, element, attrs)
     {
-        KeyboardHandler.listen(13, scope.onEnter)
+        KeyboardHandler.listen(13, scope[attrs.onEnter])
     }
     return {
         restrict: 'A',
-        scope: {
-            onEnter: '&'
-        },
         link: linker
     }
 }]);
