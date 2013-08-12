@@ -21,12 +21,12 @@
         ng-repeat="entry in logs"
         ng-class="{ 'started': entry.started, 'success': (entry.success == true), 'failed': (entry.success == false), 'error': !!entry.error }">
         <label>
-            <!-- <input type="checkbox" name="{{ entry.code }}"/> -->
             {{ entry.label }}
         </label>
         <small class="checklist-error" ng-show="entry.error">
             <strong>Message:</strong> <code>{{ entry.error.message }}</code>
         </small>
+        <small class="checklist-error-hint">{{ entry.error.hint }}</small>
         <a data-toggle="modal" href="#errorModal" class="btn btn-warning btn-xs"
             ng-show="entry.error.stack">Stack</a>
     </p>

@@ -58,7 +58,7 @@ body
     padding: 0 5px;
     /*margin: 0;*/
     background-color: #f8f8f8;
-    color: #ccc;
+    color: #aaa;
     border-radius: 3px;
     -webkit-transform: translate3d(0,0,0);
     -webkit-transition: background-color ease 500ms,
@@ -71,7 +71,6 @@ body
     width: 16px;
     content: '☐';
 }
-
 #checklist .checkbox.error
 {
     max-height: 100px;
@@ -108,6 +107,13 @@ body
 .checklist-error
 {
     display: block;
+}
+.checklist-error-hint
+{
+    display: block;
+    line-height: normal;
+    font-style: italic;
+    padding-bottom: 3px;
 }
 #checklist a[data-toggle="modal"]
 {

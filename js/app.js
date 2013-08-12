@@ -229,8 +229,21 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
             }
             var onRequestFail = function(e)
             {
-                var message = e.statusText + ' (' + e.status + ')';
-                Log.setError('VALID_URL', { message: message });
+                var message = e.statusText + ' (' + e.status + ')',
+                    hint = '';
+
+                switch (e.statusText)
+                {
+                    case 'error':
+                        hint = 'The VAST response seems to not support CORS server-side (Access-Control-Allow-Origin). Check your JavaScript console or network traces for more details';
+                        break;
+
+                    case 'Not Found':
+                        hint = 'Check your URL'
+                        break;
+                }
+
+                Log.setError('VALID_URL', { message: message, hint: hint });
                 Log.setError('VALID_XML', { message: 'Unable to fetch XML source' });
                 $scope.$apply();
             }
@@ -294,6 +307,9 @@ App.directive('onEnter', ['KeyboardHandler', function(KeyboardHandler)
     }
     return {
         restrict: 'A',
+        // scope: {
+        //     onEnter: '&'
+        // },
         link: linker
     }
 }]);
