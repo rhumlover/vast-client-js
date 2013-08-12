@@ -14,6 +14,40 @@ App.config(['$routeProvider', function($routeProvider) {
 //------------------------------------
 App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
 {
+    var Player = (function()
+    {
+        var videoElt = document.getElementById('player');
+
+        return {
+            $elt: videoElt,
+            load: function(url)
+            {
+                videoElt.src = jQuery.trim(url);
+                videoElt.load();
+            },
+            reset: function()
+            {
+                videoElt.src = '';
+            },
+            play: function()
+            {
+                videoElt.play();
+            },
+            pause: function()
+            {
+                videoElt.pause();
+            },
+            get: function(property)
+            {
+                return videoElt[property];
+            },
+            on: function(event, callback)
+            {
+                videoElt.addEventListener(event, callback);
+            }
+        }
+    })();
+
     var Log = (function()
     {
         var Entry = function(label)
@@ -25,11 +59,17 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
             },
             entries = [
                 ['VALID_URL', 'Valid URL'],
-                ['VALID_SCHEME', 'Valid VAST structure'],
                 ['VAST_RESPONSE', 'Valid VAST response'],
                 ['VAST_AD', 'Valid VAST ad'],
             ],
             logs = [];
+
+        Entry.prototype.reset = function()
+        {
+            this.started = false;
+            this.success = null;
+            this.error = null;
+        };
 
         for (var i = 0, len = entries.length; i < len; i++)
         {
@@ -47,17 +87,20 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
             {
                 return logs[logs[key]];
             },
-            reset: function(key, returnEntry)
+            reset: function()
             {
-                var entry = this.getEntry(key);
-                entry.started = false;
-                entry.success = null;
-                entry.error = null;
-                return returnEntry ? entry : this;
+                var entry;
+
+                for (var i = 0, len = logs.length; i < len; i++)
+                {
+                    entry = logs[i];
+                    entry.reset();
+                }
             },
             start: function(key)
             {
-                this.reset(key, true).started = true;
+                var entry = this.getEntry(key);
+                entry.started = true;
                 return this;
             },
             setSuccess: function(key)
@@ -83,10 +126,24 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
 
     var parseVast = function(vastUrl)
     {
-        DMVAST.client.get(vastUrl, function(response)
+        Log.start('VAST_RESPONSE');
+
+        DMVAST.client.get(vastUrl, function(err, response)
         {
+            var vastTracker;
+
+            if (err)
+            {
+                Log.setError('VAST_RESPONSE', err);
+                $scope.$apply();
+                return;
+            }
+
             if (response)
             {
+                Log.setSuccess('VAST_RESPONSE');
+                Log.start('VAST_AD');
+
                 for (var adIdx = 0, adLen = response.ads.length; adIdx < adLen; adIdx++)
                 {
                     var ad = response.ads[adIdx];
@@ -100,28 +157,29 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
                             var mediaFile = linearCreative.mediaFiles[mfIdx];
                             if (mediaFile.mimeType != "video/mp4") continue;
 
-                            player.vastTracker = new DMVAST.tracker(ad, linearCreative);
-                            player.vastTracker.on('clickthrough', function(url)
+                            vastTracker = new DMVAST.tracker(ad, linearCreative);
+                            vastTracker.on('clickthrough', function(url)
                             {
                                 document.location.href = url;
                             });
-                            player.on('canplay', function() {this.vastTracker.load();});
-                            player.on('timeupdate', function() {this.vastTracker.setProgress(this.currentTime);});
-                            player.on('play', function() {this.vastTracker.setPaused(false);});
-                            player.on('pause', function() {this.vastTracker.setPaused(true);});
+                            Player.on('canplay', function() {vastTracker.load();});
+                            Player.on('timeupdate', function() {vastTracker.setProgress(this.currentTime);});
+                            Player.on('play', function() {vastTracker.setPaused(false);});
+                            Player.on('pause', function() {vastTracker.setPaused(true);});
 
-                            player.video.href = mediaFile.fileURL;
-                            // put player in ad mode
+                            Player.load(mediaFile.fileURL);
+                            Player.play();
+                            // put $player in ad mode
                             break;
                         }
 
-                        if (player.vastTracker)
+                        if (vastTracker)
                         {
                             break;
                         }
                     }
 
-                    if (player.vastTracker)
+                    if (vastTracker)
                     {
                         break;
                     }
@@ -133,11 +191,17 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
                 }
             }
 
-            if (!player.vastTracker)
+            if (!vastTracker)
             {
+                Log.setError('VAST_AD');
                 // No pre-roll, start video
             }
+            else
+            {
+                Log.setSuccess('VAST_AD');
+            }
 
+            $scope.$apply();
         });
     }
 
@@ -147,6 +211,9 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
     {
         var vastUrl;
 
+        Log.reset();
+        Player.reset();
+
         if (vastUrl = $scope.vastUrl)
         {
             Log.start('VALID_URL');
@@ -155,6 +222,7 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
                 .done(function()
                 {
                     Log.setSuccess('VALID_URL');
+                    parseVast(vastUrl);
                     $scope.$apply();
                 })
                 .fail(function(e)

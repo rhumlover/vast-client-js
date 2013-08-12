@@ -42,8 +42,8 @@ VASTClient = (function() {
       cb(null);
       return;
     }
-    return VASTParser.parse(url, function(response) {
-      return cb(response);
+    return VASTParser.parse(url, function(err, response) {
+      return cb(err, response);
     });
   };
 
@@ -580,7 +580,7 @@ EventEmitter.prototype.listeners = function(type) {
 
 })(require("__browserify_process"))
 },{"__browserify_process":8}],4:[function(require,module,exports){
-var URLHandler, VASTAd, VASTCreativeLinear, VASTMediaFile, VASTParser, VASTResponse, VASTUtil,
+var ParseStack, URLHandler, VASTAd, VASTCreativeLinear, VASTError, VASTMediaFile, VASTParser, VASTResponse, VASTUtil,
   __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 URLHandler = require('./urlhandler.coffee');
@@ -594,6 +594,8 @@ VASTUtil = require('./util.coffee');
 VASTCreativeLinear = require('./creative.coffee').VASTCreativeLinear;
 
 VASTMediaFile = require('./mediafile.coffee');
+
+VASTError = require('./error.coffee');
 
 VASTParser = (function() {
   var URLTemplateFilters;
@@ -620,7 +622,7 @@ VASTParser = (function() {
 
   VASTParser.parse = function(url, cb) {
     return this._parse(url, null, function(err, response) {
-      return cb(response);
+      return cb(err, response);
     });
   };
 
@@ -633,12 +635,15 @@ VASTParser = (function() {
     }
     if (parentURLs == null) parentURLs = [];
     parentURLs.push(url);
+    ParseStack.log("Fetching URL: `" + url + "`");
     return URLHandler.get(url, function(err, xml) {
       var ad, complete, node, response, _fn, _j, _k, _l, _len2, _len3, _len4, _ref, _ref2, _ref3;
-      if (err != null) return cb(err);
+      if (err != null) return cb(new VASTError(err, xml, ParseStack.getStack()));
+      ParseStack.log("Response received without error");
       response = new VASTResponse();
       if (!(((xml != null ? xml.documentElement : void 0) != null) && xml.documentElement.nodeName === "VAST")) {
-        return cb();
+        return cb(new VASTError('First document tag is not `VAST`', xml, ParseStack.getStack()));
+        ParseStack.log("Document root element is `VAST`");
       }
       _ref = xml.documentElement.childNodes;
       for (_j = 0, _len2 = _ref.length; _j < _len2; _j++) {
@@ -662,7 +667,7 @@ VASTParser = (function() {
         }
       }
       complete = function() {
-        var ad, _l, _len4, _ref3;
+        var ad, error, _l, _len4, _ref3;
         if (!response) return;
         _ref3 = response.ads;
         for (_l = 0, _len4 = _ref3.length; _l < _len4; _l++) {
@@ -673,9 +678,10 @@ VASTParser = (function() {
           VASTUtil.track(response.errorURLTemplates, {
             ERRORCODE: 303
           });
+          error = new VASTError('No Ad Response', response, ParseStack.getStack());
           response = null;
         }
-        return cb(null, response);
+        return cb(error, response);
       };
       _ref3 = response.ads;
       _fn = function(ad) {
@@ -899,9 +905,36 @@ VASTParser = (function() {
 
 })();
 
+ParseStack = (function() {
+  var lastStepTime, stack;
+  stack = [];
+  lastStepTime = 0;
+  return {
+    getStack: function() {
+      return stack;
+    },
+    log: function(message, data) {
+      var lastStepDuration, now;
+      now = +new Date();
+      if (lastStepTime === 0) {
+        lastStepDuration = 0;
+      } else {
+        lastStepDuration = now - lastStepTime;
+      }
+      lastStepTime = now;
+      return stack.push({
+        message: message,
+        data: data,
+        time: now,
+        lastStepDuration: lastStepDuration
+      });
+    }
+  };
+})();
+
 module.exports = VASTParser;
 
-},{"./urlhandler.coffee":9,"./response.coffee":10,"./ad.coffee":11,"./util.coffee":5,"./creative.coffee":7,"./mediafile.coffee":12}],7:[function(require,module,exports){
+},{"./urlhandler.coffee":9,"./response.coffee":10,"./ad.coffee":11,"./util.coffee":5,"./creative.coffee":7,"./mediafile.coffee":12,"./error.coffee":13}],7:[function(require,module,exports){
 var VASTCreative, VASTCreativeCompanion, VASTCreativeLinear, VASTCreativeNonLinear,
   __hasProp = Object.prototype.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
@@ -980,7 +1013,34 @@ VASTResponse = (function() {
 
 module.exports = VASTResponse;
 
-},{}],11:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
+var URLHandler, flash, xhr;
+
+xhr = require('./urlhandlers/xmlhttprequest.coffee');
+
+flash = require('./urlhandlers/flash.coffee');
+
+URLHandler = (function() {
+
+  function URLHandler() {}
+
+  URLHandler.get = function(url, cb) {
+    if (!(typeof window !== "undefined" && window !== null)) {
+      return require('./urlhandlers/' + 'node.coffee').get(url, cb);
+    } else if (xhr.supported()) {
+      return xhr.get(url, cb);
+    } else {
+      return flash.get(url, cb);
+    }
+  };
+
+  return URLHandler;
+
+})();
+
+module.exports = URLHandler;
+
+},{"./urlhandlers/xmlhttprequest.coffee":14,"./urlhandlers/flash.coffee":15}],11:[function(require,module,exports){
 var VASTAd;
 
 VASTAd = (function() {
@@ -1020,51 +1080,25 @@ VASTMediaFile = (function() {
 
 module.exports = VASTMediaFile;
 
-},{}],9:[function(require,module,exports){
-var URLHandler, flash, xhr;
-
-xhr = require('./urlhandlers/xmlhttprequest.coffee');
-
-flash = require('./urlhandlers/flash.coffee');
-
-URLHandler = (function() {
-
-  function URLHandler() {}
-
-  URLHandler.get = function(url, cb) {
-    if (!(typeof window !== "undefined" && window !== null)) {
-      return require('./urlhandlers/' + 'node.coffee').get(url, cb);
-    } else if (xhr.supported()) {
-      return xhr.get(url, cb);
-    } else {
-      return flash.get(url, cb);
-    }
-  };
-
-  return URLHandler;
-
-})();
-
-module.exports = URLHandler;
-
-},{"./urlhandlers/xmlhttprequest.coffee":13,"./urlhandlers/flash.coffee":14}],14:[function(require,module,exports){
-var FlashURLHandler;
-
-FlashURLHandler = (function() {
-
-  function FlashURLHandler() {}
-
-  FlashURLHandler.get = function(url, cb) {
-    return cb('not supported');
-  };
-
-  return FlashURLHandler;
-
-})();
-
-module.exports = FlashURLHandler;
-
 },{}],13:[function(require,module,exports){
+var VASTError;
+
+VASTError = (function() {
+
+  function VASTError(message, response, stack) {
+    this.message = message != null ? message : '';
+    this.response = response != null ? response : null;
+    this.stack = stack != null ? stack : [];
+    this.time = +new Date();
+  }
+
+  return VASTError;
+
+})();
+
+module.exports = VASTError;
+
+},{}],14:[function(require,module,exports){
 var XHRURLHandler;
 
 XHRURLHandler = (function() {
@@ -1096,6 +1130,23 @@ XHRURLHandler = (function() {
 })();
 
 module.exports = XHRURLHandler;
+
+},{}],15:[function(require,module,exports){
+var FlashURLHandler;
+
+FlashURLHandler = (function() {
+
+  function FlashURLHandler() {}
+
+  FlashURLHandler.get = function(url, cb) {
+    return cb('not supported');
+  };
+
+  return FlashURLHandler;
+
+})();
+
+module.exports = FlashURLHandler;
 
 },{}]},{},[1])(1)
 });
