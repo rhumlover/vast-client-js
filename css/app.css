@@ -6,6 +6,10 @@ body
 {
     /*font-family: 'Roboto', sans-serif !important;*/
 }
+footer
+{
+    font-size: 0.7em;
+}
 
 .navbar
 {
