@@ -30,6 +30,12 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
     {
         var videoElt = document.getElementById('player');
 
+        videoElt.addEventListener('playing', function(e)
+        {
+            Log.setSuccess('CAN_PLAY_AD');
+            $scope.$apply();
+        });
+
         videoElt.addEventListener('error', function(e)
         {
             var videoSrc = this.currentSrc,
