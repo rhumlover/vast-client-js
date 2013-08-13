@@ -2,7 +2,7 @@
 
 <div class="input-group">
     <input type="text" class="form-control" placeholder="Put your VAST url here"
-        ng-model="vastUrl">
+        ng-model="vastUrl"/>
     <span class="input-group-btn">
         <button class="btn btn-default" type="button"
             ng-click="goClickHandler()"
@@ -29,6 +29,9 @@
         <small class="checklist-error-hint">{{ entry.error.hint }}</small>
         <a data-toggle="modal" href="#errorModal" class="btn btn-warning btn-xs"
             ng-show="entry.error.stack">Stack</a>
+        <a data-toggle="modal" class="btn btn-success btn-xs"
+            ng-click="entry.openDetails()"
+            ng-show="entry.data">Details</a>
     </p>
 </div>
 
@@ -65,3 +68,6 @@
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
+
+
+<div class="modal fade" id="detailsModal" ng-include src="detailsModal.template"></div>

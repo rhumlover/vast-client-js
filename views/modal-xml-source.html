@@ -1,0 +1,33 @@
+
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title">XML Source</h4>
+        </div>
+        <div class="modal-body">
+            <textarea class="xmlSource">{{ currentSource }}</textarea>
+            <!-- <pre class="prettyprint lang-xml">
+{{ currentSource }}
+            </pre> -->
+            <!--
+            <ul class="nav nav-tabs" id="xmlSource_tab">
+                <li class="active"><a data-target="#xmlSource_response" data-toggle="tab">Source Received</a></li>
+                <li><a data-target="#xmlSource_iframe" data-toggle="tab">Source Online</a></li>
+            </ul>
+
+            <div class="tab-content">
+                <div class="tab-pane active" id="xmlSource_response">
+                    <textarea class="xmlSource">{{ currentSource }}</textarea>
+                </div>
+                <div class="tab-pane" id="xmlSource_iframe">
+                    <iframe src="{{ vastUrl }}" class="xmlSource"></iframe>
+                </div>
+            </div> -->
+
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+    </div><!-- /.modal-content -->
+</div><!-- /.modal-dialog -->

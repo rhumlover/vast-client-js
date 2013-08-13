@@ -14,6 +14,18 @@ App.config(['$routeProvider', function($routeProvider) {
 //------------------------------------
 App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
 {
+    // Scope properties
+    $scope.vastUrl = 'http://localhost/vast-client-js/test/devstream.xml';
+    $scope.detailsModal =
+    {
+        template: null,
+        content: null
+    };
+    $scope.currentAd = null;
+    $scope.currentSource = null;
+    $scope.logs = null;
+
+    // Stuff
     var Player = (function()
     {
         var videoElt = document.getElementById('player');
@@ -50,18 +62,17 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
 
     var Log = (function()
     {
-        var Entry = function(label)
+        var Entry = function(label, template)
             {
                 this.label = label;
-                this.started = false;
-                this.success = null;
-                this.error = null;
+                this.template = template;
+                this.reset();
             },
             entries = [
                 ['VALID_URL', 'Valid URL'],
-                ['VALID_XML', 'Valid XML response'],
+                ['VALID_XML', 'Valid XML response', 'views/modal-xml-source.html'],
                 ['VAST_RESPONSE', 'Valid VAST response'],
-                ['VAST_AD', 'Valid VAST ad'],
+                ['VAST_AD', 'Valid VAST ad', 'views/modal-ad-details.html'],
             ],
             logs = [];
 
@@ -70,15 +81,25 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
             this.started = false;
             this.success = null;
             this.error = null;
+            this.data = null;
+        };
+        Entry.prototype.openDetails = function()
+        {
+            if (this.template)
+            {
+                $scope.detailsModal.template = this.template;
+                $('#detailsModal').modal();
+            }
         };
 
         for (var i = 0, len = entries.length; i < len; i++)
         {
             var entry = entries[i],
                 code = entry[0],
-                label = entry[1];
+                label = entry[1],
+                template = entry[2];
 
-            logs.push(new Entry(label));
+            logs.push(new Entry(label, template));
             logs[code] = i;
         }
 
@@ -123,6 +144,11 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
                 entry.error = error;
 
                 $scope.$parent.currentError = error;
+            },
+            setData: function(key, data)
+            {
+                var entry = this.getEntry(key);
+                entry.data = data;
             }
         }
     })();
@@ -173,6 +199,10 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
                             Player.load(mediaFile.fileURL);
                             Player.play();
                             // put $player in ad mode
+
+                            Log.setData('VAST_AD', ad);
+                            $scope.currentAd = ad;
+
                             break;
                         }
 
@@ -250,7 +280,9 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
             var onRequestSuccess = function(e)
             {
                 Log.setSuccess('VALID_XML');
+                Log.setData('VALID_XML', e.responseText);
                 parseVast(vastUrl);
+                $scope.currentSource = e.responseText;
                 $scope.$apply();
             }
 
@@ -270,8 +302,8 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
                         break;
 
                     case 'error':
-                        evt = res;
-                        onRequestFail.call(null, evt);
+                        // In this case, res == evt
+                        onRequestFail.call(null, res);
                     default:
                 }
             });
