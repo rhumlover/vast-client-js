@@ -52,6 +52,7 @@ body
 }
 #checklist .checkbox
 {
+    position: relative;
     min-height: 25px;
     max-height: 25px;
     line-height: 25px;
