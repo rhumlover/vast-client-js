@@ -15,7 +15,7 @@ App.config(['$routeProvider', function($routeProvider) {
 App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
 {
     // Scope properties
-    // $scope.vastUrl = 'http://localhost/vast-client-js/test/devstream.xml';
+    $scope.vastUrl = '';
     $scope.detailsModal =
     {
         template: null,
@@ -30,12 +30,59 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
     {
         var videoElt = document.getElementById('player');
 
+        videoElt.addEventListener('error', function(e)
+        {
+            var videoSrc = this.currentSrc,
+                errorObj,
+                messageResponse;
+
+            if (videoSrc == this.baseURI) return;
+
+            messageResponse =
+            {
+                message: '',
+                hint: 'Media URL: <input type="text" class="form-control" value="' + videoSrc + '"/>'
+            };
+
+            errorObj = e.target.error;
+
+            switch (errorObj.code)
+            {
+                case errorObj.MEDIA_ERR_ABORTED:
+                    messageResponse.message = 'Video playback aborted';
+                    break;
+
+                case errorObj.MEDIA_ERR_NETWORK:
+                    messageResponse.message = 'A network error caused the video download to fail part-way';
+                    break;
+
+                case errorObj.MEDIA_ERR_DECODE:
+                    messageResponse.message = 'The video playback was aborted due to a corruption problem or because the video used features your browser did not support';
+                    break;
+
+                case errorObj.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                    messageResponse.message = 'The video could not be loaded, either because the server or network failed or because the format is not supported';
+                    break;
+
+                default:
+                    messageResponse.message = 'An unknown error occurred';
+                    break;
+            }
+
+            Log.setError('CAN_PLAY_AD', messageResponse);
+            $scope.$apply();
+        });
+
         return {
             $elt: videoElt,
             load: function(url)
             {
-                videoElt.src = jQuery.trim(url);
-                videoElt.load();
+                url = jQuery.trim(url);
+                if (url.length)
+                {
+                    videoElt.src = url;
+                    videoElt.load();
+                }
             },
             reset: function()
             {
@@ -73,6 +120,7 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
                 ['VALID_XML', 'Valid XML response', 'views/modal-xml-source.html'],
                 ['VAST_RESPONSE', 'Valid VAST response'],
                 ['VAST_AD', 'Valid VAST ad', 'views/modal-ad-details.html'],
+                ['CAN_PLAY_AD', 'Can play mediaFile'],
             ],
             logs = [];
 

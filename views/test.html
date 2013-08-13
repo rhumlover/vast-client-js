@@ -26,7 +26,7 @@
         <small class="checklist-error" ng-show="entry.error">
             <strong>Message:</strong> <code>{{ entry.error.message }}</code>
         </small>
-        <small class="checklist-error-hint">{{ entry.error.hint }}</small>
+        <small class="checklist-error-hint" ng-bind-html-unsafe="entry.error.hint"></small>
         <a data-toggle="modal" href="#errorModal" class="btn btn-warning btn-xs"
             ng-show="entry.error.stack">Stack</a>
         <a data-toggle="modal" class="btn btn-success btn-xs"
