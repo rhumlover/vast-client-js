@@ -36,7 +36,7 @@ App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
                 errorObj,
                 messageResponse;
 
-            if (videoSrc == this.baseURI) return;
+            if (videoSrc == this.baseURI || !videoSrc.length) return;
 
             messageResponse =
             {
