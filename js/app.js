@@ -15,7 +15,7 @@ App.config(['$routeProvider', function($routeProvider) {
 App.controller('TestCtrl', ['$scope', '$http', function($scope, $http)
 {
     // Scope properties
-    $scope.vastUrl = 'http://localhost/vast-client-js/test/devstream.xml';
+    // $scope.vastUrl = 'http://localhost/vast-client-js/test/devstream.xml';
     $scope.detailsModal =
     {
         template: null,
