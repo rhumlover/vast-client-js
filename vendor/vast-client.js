@@ -637,7 +637,6 @@ VASTParser = (function() {
     parentURLs.push(url);
     ParseStack.log("Fetching URL: `" + url + "`");
     return URLHandler.get(url, function(err, xml) {
-      console.log(url, ':', err, xml);
       var ad, complete, node, response, _fn, _j, _k, _l, _len2, _len3, _len4, _ref, _ref2, _ref3;
       if (err != null) return cb(new VASTError(err, xml, ParseStack.getStack()));
       ParseStack.log("Response received without error");
@@ -659,7 +658,6 @@ VASTParser = (function() {
         if (node.nodeName === 'Ad') {
           ad = _this.parseAdElement(node);
           if (ad != null) {
-            // console.log('adding', ad);
             response.ads.push(ad);
           } else {
             VASTUtil.track(response.errorURLTemplates, {
@@ -671,11 +669,10 @@ VASTParser = (function() {
       complete = function() {
         var ad, error, _l, _len4, _ref3;
         if (!response) return;
-        console.log(response.ads, response.ads.length);
         _ref3 = response.ads;
         for (_l = 0, _len4 = _ref3.length; _l < _len4; _l++) {
           ad = _ref3[_l];
-          if (ad && ad.nextWrapperURL != null) return;
+          if (ad.nextWrapperURL != null) return;
         }
         if (response.ads.length === 0) {
           VASTUtil.track(response.errorURLTemplates, {
@@ -743,7 +740,7 @@ VASTParser = (function() {
       };
       for (_l = 0, _len4 = _ref3.length; _l < _len4; _l++) {
         ad = _ref3[_l];
-        if (!ad || ad.nextWrapperURL == null) continue;
+        if (ad.nextWrapperURL == null) continue;
         _fn(ad);
       }
       return complete();
@@ -1016,6 +1013,29 @@ VASTResponse = (function() {
 
 module.exports = VASTResponse;
 
+},{}],12:[function(require,module,exports){
+var VASTMediaFile;
+
+VASTMediaFile = (function() {
+
+  function VASTMediaFile() {
+    this.fileURL = null;
+    this.deliveryType = "progressive";
+    this.mimeType = null;
+    this.codec = null;
+    this.bitrate = 0;
+    this.minBitrate = 0;
+    this.maxBitrate = 0;
+    this.width = 0;
+    this.height = 0;
+  }
+
+  return VASTMediaFile;
+
+})();
+
+module.exports = VASTMediaFile;
+
 },{}],9:[function(require,module,exports){
 var URLHandler, flash, xhr;
 
@@ -1060,29 +1080,6 @@ VASTAd = (function() {
 
 module.exports = VASTAd;
 
-},{}],12:[function(require,module,exports){
-var VASTMediaFile;
-
-VASTMediaFile = (function() {
-
-  function VASTMediaFile() {
-    this.fileURL = null;
-    this.deliveryType = "progressive";
-    this.mimeType = null;
-    this.codec = null;
-    this.bitrate = 0;
-    this.minBitrate = 0;
-    this.maxBitrate = 0;
-    this.width = 0;
-    this.height = 0;
-  }
-
-  return VASTMediaFile;
-
-})();
-
-module.exports = VASTMediaFile;
-
 },{}],13:[function(require,module,exports){
 var VASTError;
 
@@ -1100,6 +1097,23 @@ VASTError = (function() {
 })();
 
 module.exports = VASTError;
+
+},{}],15:[function(require,module,exports){
+var FlashURLHandler;
+
+FlashURLHandler = (function() {
+
+  function FlashURLHandler() {}
+
+  FlashURLHandler.get = function(url, cb) {
+    return cb('not supported');
+  };
+
+  return FlashURLHandler;
+
+})();
+
+module.exports = FlashURLHandler;
 
 },{}],14:[function(require,module,exports){
 var XHRURLHandler;
@@ -1133,23 +1147,6 @@ XHRURLHandler = (function() {
 })();
 
 module.exports = XHRURLHandler;
-
-},{}],15:[function(require,module,exports){
-var FlashURLHandler;
-
-FlashURLHandler = (function() {
-
-  function FlashURLHandler() {}
-
-  FlashURLHandler.get = function(url, cb) {
-    return cb('not supported');
-  };
-
-  return FlashURLHandler;
-
-})();
-
-module.exports = FlashURLHandler;
 
 },{}]},{},[1])(1)
 });
