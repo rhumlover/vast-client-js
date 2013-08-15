@@ -4,7 +4,7 @@ App.service('PlayerService', ['LogService', function(Log)
 {
     var Player = (function()
     {
-        var videoElt = document.getElementById('player');
+        var videoElt = baseElt = document.getElementById('player');
 
         var errorCallback = function(e, clientCallback)
         {
@@ -61,7 +61,7 @@ App.service('PlayerService', ['LogService', function(Log)
             },
             reset: function()
             {
-                videoElt.src = '';
+                $(videoElt).replaceWith(baseElt.cloneNode());
             },
             play: function()
             {

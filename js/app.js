@@ -5,5 +5,6 @@ var App = angular.module('App', []);
 
 App.config(['$routeProvider', function($routeProvider) {
     $routeProvider.when('/test', { templateUrl: 'views/test.html', controller: 'TestCtrl' });
+    $routeProvider.when('/mocha', { templateUrl: 'views/mocha.html', controller: 'MochaCtrl' });
     $routeProvider.otherwise({redirectTo: '/test'});
 }]);

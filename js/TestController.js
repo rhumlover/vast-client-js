@@ -3,7 +3,7 @@
 App.controller('TestCtrl', ['$rootScope', '$scope', '$http', 'LogService', 'PlayerService', function($rootScope, $scope, $http, Log, Player)
 {
     // Scope properties
-    $scope.vastUrl = 'http://localhost/vast-client-js/test/staticparser-bad.xml';
+    $scope.vastUrl = 'http://localhost/vast-client-js/test/staticparser-ok.xml';
     $scope.currentAd = null;
     $scope.currentSource = null;
     $scope.logs = Log.list;
@@ -136,14 +136,27 @@ App.controller('TestCtrl', ['$rootScope', '$scope', '$http', 'LogService', 'Play
                             if (mediaFile.mimeType != $scope.wantedFormat) continue;
 
                             vastTracker = new DMVAST.tracker(ad, linearCreative);
-                            vastTracker.on('clickthrough', function(url)
-                            {
-                                document.location.href = url;
-                            });
-                            // Player.on('canplay', function() {vastTracker.load();});
-                            // Player.on('timeupdate', function() {vastTracker.setProgress(this.currentTime);});
-                            // Player.on('play', function() {vastTracker.setPaused(false);});
-                            // Player.on('pause', function() {vastTracker.setPaused(true);});
+                            // vastTracker.on('clickthrough', function(url)
+                            // {
+                            //     document.location.href = url;
+                            // });
+
+                            Player.on('loadedmetadata', function() { console.log(this.duration); });
+                            Player.on('canplay', function() {vastTracker.load();});
+                            Player.on('timeupdate', function() {vastTracker.setProgress(this.currentTime);});
+                            Player.on('play', function() {vastTracker.setPaused(false);});
+                            Player.on('pause', function() {vastTracker.setPaused(true);});
+                            /*
+                            "firstQuartile" if percent >= 25
+                            events.push "midpoint" if percent >= 50
+                            events.push "thirdQuartile" if percent >= 75
+                            events.push "complete"
+                            */
+                            vastTracker.on('start', function() { console.log('start'); });
+                            vastTracker.on('firstQuartile', function() { console.log('firstQuartile'); });
+                            vastTracker.on('midpoint', function() { console.log('midpoint'); });
+                            vastTracker.on('thirdQuartile', function() { console.log('thirdQuartile'); });
+                            vastTracker.on('complete', function() { console.log('complete'); });
 
                             Log.setData('VAST_AD', ad);
                             $scope.currentAd = ad;
