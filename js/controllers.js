@@ -52,7 +52,6 @@ App.controller('TestCtrl', ['$rootScope', '$scope', '$http', 'LogService', 'Play
                 }
 
                 Log.setError('VALID_URL', { message: message, hint: hint });
-                // Log.setError('VALID_XML', { message: 'Unable to fetch XML source' });
                 $scope.$apply();
             }
             var onRequestSuccess = function(e)
@@ -66,7 +65,6 @@ App.controller('TestCtrl', ['$rootScope', '$scope', '$http', 'LogService', 'Play
 
             $.get(vastUrl).always(function(res, status, evt)
             {
-                // console.log(arguments);
                 switch (status)
                 {
                     case 'success':
@@ -105,7 +103,6 @@ App.controller('TestCtrl', ['$rootScope', '$scope', '$http', 'LogService', 'Play
         }
     };
 
-    // Stuff
     var parseVast = function(vastUrl)
     {
         Log.start('VAST_RESPONSE');
