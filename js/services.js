@@ -4,7 +4,9 @@ App.service('PlayerService', ['LogService', function(Log)
 {
     var Player = (function()
     {
-        var videoElt = baseElt = document.getElementById('player');
+        var videoElt, baseElt;
+
+        videoElt = baseElt = document.getElementById('player');
 
         var errorCallback = function(e, clientCallback)
         {
