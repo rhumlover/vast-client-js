@@ -13,28 +13,32 @@ App.directive('onEnter', ['KeyboardHandler', function(KeyboardHandler)
     }
 }]);
 
-App.directive('modal', ['$rootScope', function($rootScope)
+App.directive('modal', function($rootScope, $http, $compile)
 {
     var linker = function(scope, element, attrs)
     {
+        var $modalElt = element.find('.modal');
+
         $rootScope.Modal = {
             elt: element,
             open: function(title, template, data)
             {
+                var self = this;
+                scope.modal = {
+                    title: title,
+                    template: template,
+                    content: data
+                };
 
+                $modalElt.modal();
             }
         };
-
     };
 
     return {
         restrict: 'E',
-        scope: {
-            title: '@',
-            template: '&',
-            data: '@'
-        },
+        scope: {},
         link: linker,
-        template: 'views/modal.html'
+        templateUrl: 'views/modal.html'
     }
-}]);
+});

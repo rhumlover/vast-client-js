@@ -6,7 +6,7 @@ App.service('PlayerService', ['LogService', function(Log)
     {
         var videoElt = document.getElementById('player');
 
-        videoElt.addEventListener('error', function(e)
+        var errorCallback = function(e, clientCallback)
         {
             var videoSrc = this.currentSrc,
                 errorObj,
@@ -45,8 +45,8 @@ App.service('PlayerService', ['LogService', function(Log)
                     break;
             }
 
-            throw messageResponse;
-        });
+            clientCallback.call(clientCallback, e, messageResponse);
+        };
 
         return {
             $elt: videoElt,
@@ -77,7 +77,17 @@ App.service('PlayerService', ['LogService', function(Log)
             },
             on: function(event, callback)
             {
-                videoElt.addEventListener(event, callback);
+                if (event === 'error')
+                {
+                    videoElt.addEventListener('error', function(e)
+                    {
+                        errorCallback.call(videoElt, e, callback);
+                    });
+                }
+                else
+                {
+                    videoElt.addEventListener(event, callback);
+                }
             }
         }
     })();
@@ -86,7 +96,7 @@ App.service('PlayerService', ['LogService', function(Log)
 }]);
 
 
-App.service('LogService', [function()
+App.service('LogService', ['$rootScope', function($rootScope)
 {
     var Log = (function()
     {
@@ -112,12 +122,31 @@ App.service('LogService', [function()
             this.error = null;
             this.data = null;
         };
-        Entry.prototype.openDetails = function()
+        Entry.prototype.openModal = function(type)
         {
-            if (this.template)
+            var label, template, data, modalFn;
+
+            switch (type)
             {
-                $scope.detailsModal.template = this.template;
-                $('#detailsModal').modal();
+                case 'error':
+                    label = this.error.message;
+                    template = 'views/modal-error.html';
+                    data = this.error;
+                    break;
+
+                case 'details':
+                    label = this.label;
+                    template = this.template;
+                    data = this.data;
+                    break;
+            }
+
+            if (template)
+            {
+                if (modalFn = $rootScope.Modal)
+                {
+                   modalFn.open(label, template, data);
+                }
             }
         };
 
@@ -171,8 +200,6 @@ App.service('LogService', [function()
                 var entry = this.getEntry(key);
                 entry.success = false;
                 entry.error = error;
-
-                // $scope.$parent.currentError = error;
             },
             setData: function(key, data)
             {
