@@ -1,5 +1,3 @@
-'use strict';
-
 App.controller('MochaCtrl', [
     '$rootScope', '$scope', '$http', 'LogService', 'PlayerService',
     function($rootScope, $scope, $http, Log, Player)

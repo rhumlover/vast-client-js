@@ -44,6 +44,10 @@
 
         <a data-toggle="modal" class="btn btn-warning btn-xs"
             ng-click="entry.openModal('error')"
+            ng-show="entry.error.data">Details</a>
+
+        <a data-toggle="modal" class="btn btn-warning btn-xs"
+            ng-click="entry.openModal('stack')"
             ng-show="entry.error.stack">Stack</a>
 
         <a data-toggle="modal" class="btn btn-success btn-xs"
