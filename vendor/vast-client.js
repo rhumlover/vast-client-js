@@ -470,7 +470,7 @@ VASTTracker = (function(_super) {
         events.push("start");
         percent = Math.round(progress / this.assetDuration * 100);
         events.push("progress-" + percent + "%");
-        console.log(this.assetDuration, progress, percent + "%");
+        // console.log(this.assetDuration, progress, percent + "%");
         if (percent >= 25) events.push("firstQuartile");
         if (percent >= 50) events.push("midpoint");
         if (percent >= 75) events.push("thirdQuartile");

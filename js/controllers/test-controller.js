@@ -4,8 +4,6 @@ App.controller('TestCtrl', [
     {
         // Scope properties
         $scope.vastUrl = 'http://localhost/vast-client-js/test/staticparser-ok.xml';
-        $scope.currentAd = null;
-        $scope.currentSource = null;
         $scope.logs = Log.list;
         $scope.wantedFormat = 'video/mp4';
 
@@ -151,14 +149,20 @@ App.controller('TestCtrl', [
                                 Player.on('play', function() {vastTracker.setPaused(false);});
                                 Player.on('pause', function() {vastTracker.setPaused(true);});
 
-                                vastTracker.on('start', function() { console.log('start'); });
-                                vastTracker.on('firstQuartile', function() { console.log('firstQuartile'); });
-                                vastTracker.on('midpoint', function() { console.log('midpoint'); });
-                                vastTracker.on('thirdQuartile', function() { console.log('thirdQuartile'); });
-                                vastTracker.on('complete', function() { console.log('complete'); });
+                                var _trackingEvents = Object.keys(linearCreative),
+                                    _teName, _teUrls;
+                                for (var i = 0, len = _trackingEvents; i < len; i++)
+                                {
+                                    _teName = _trackingEvents[i];
+                                    _teUrls = linearCreative[_teName];
+
+                                    vastTracker.on(_teName, function()
+                                    {
+                                        console.log(_teName, 'called');
+                                    });
+                                }
 
                                 Log.setData('VAST_AD', ad);
-                                $scope.currentAd = ad;
 
                                 Player.on('playing', function()
                                 {

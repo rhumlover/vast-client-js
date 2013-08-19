@@ -6,8 +6,8 @@
     </a>
     <div id="ad_errorURLTemplates" class="collapse" ng-show="modal.content.errorURLTemplates.length > 0">
         <ul class="list-group">
-            <li class="list-group-item" ng-repeat="url in modal.content.errorURLTemplates">
-                <small ng-bind-html-unsafe="url"></small>
+            <li class="list-group-item url-list" ng-repeat="url in modal.content.errorURLTemplates">
+                <input type="text" class="form-control" value="{{ url }}"/>
             </li>
         </ul>
     </div>
@@ -18,8 +18,8 @@
     </a>
     <div id="ad_impressionURLTemplates" class="collapse" ng-show="modal.content.impressionURLTemplates.length > 0">
         <ul class="list-group">
-            <li class="list-group-item" ng-repeat="url in modal.content.impressionURLTemplates">
-                <small ng-bind-html-unsafe="url"></small>
+            <li class="list-group-item url-list" ng-repeat="url in modal.content.impressionURLTemplates">
+                <input type="text" class="form-control" value="{{ url }}"/>
             </li>
         </ul>
     </div>
@@ -31,7 +31,12 @@
     <div id="ad_creatives" class="collapse">
         <div ng-repeat="ad in modal.content.creatives">
             <h5>Tracking Events</h5>
-            <small ng-repeat="url in ad.trackingEvents" ng-bind-html-unsafe="url"></small>
+            <!--  -->
+            <small ng-repeat="(name, evts) in ad.trackingEvents">
+                <code>{{ name }}</code>
+                <input type="text" class="form-control" value="{{ url }}"
+                    ng-repeat="url in evts"/>
+            </small>
 
             <h5>Type</h5>
             <small>{{ ad.type }}</small>

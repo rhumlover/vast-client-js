@@ -4,13 +4,9 @@ yellow: FED200;
 
 body
 {
-    /*font-family: 'Roboto', sans-serif !important;*/
+    font-family: 'Roboto', sans-serif !important;
 }
-footer
-{
-    font-size: 0.7em;
-}
-pre
+footer, pre
 {
     font-size: 0.7em;
 }
@@ -135,4 +131,8 @@ pre
     top: 3px;
     right: 3px;
     padding: 0 4px !important;
+}
+.url-list
+{
+    padding-right: 15px;
 }
