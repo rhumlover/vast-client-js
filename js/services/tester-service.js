@@ -27,6 +27,7 @@ App.service('TesterService', function($rootScope)
     };
     TesterService.prototype.reset = function()
     {
+        console.log('\n%c---- Automatic VAST Testing, Hello There! ----\n', 'color: #428BCA; font-weight: bold;');
         var test;
 
         this._data.length = 0;
@@ -111,7 +112,7 @@ App.service('TesterService', function($rootScope)
 
         failFn = function(err)
         {
-            console.log('   %c✘%c fail', 'color: #B94A48; font-size: 1.5em;', 'color: #B94A48;');
+            console.log('   %c✘ fail %O', 'color: #B94A48;', err);
 
             clearTimeout(timeout);
             timeout = null;
@@ -124,7 +125,7 @@ App.service('TesterService', function($rootScope)
 
         doneFn = function()
         {
-            console.log('   %c✔%c success', 'color: #468847; font-size: 1.5em;', 'color: #468847;');
+            console.log('   %c✔ success', 'color: #468847;');
 
             clearTimeout(timeout);
             timeout = null;
