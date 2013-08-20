@@ -170,6 +170,8 @@ App.controller('TestCtrl', [
                 mediaFile = Tester.get('vastTracker.mediaFile'),
                 self = this;
 
+            // TODO: display, log and check all sent events
+            // ------------------------------------------------
             // var _trackingEvents = Object.keys(linearCreative),
             //     _teName, _teUrls;
             // for (var i = 0, len = _trackingEvents; i < len; i++)
@@ -217,7 +219,7 @@ App.controller('TestCtrl', [
         });
 
         // Scope properties
-        $scope.vastUrl = 'http://localhost/vast-client-js/test/staticparser-ok.xml';
+        // $scope.vastUrl = 'http://localhost/vast-client-js/test/staticparser-ok.xml';
         $scope.wantedFormat = 'video/mp4';
         $scope.Tester = Tester;
 
