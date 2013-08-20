@@ -3,9 +3,9 @@
     <input type="text" class="form-control" placeholder="Put your VAST url here"
         ng-model="vastUrl"/>
     <span class="input-group-btn">
-        <button class="btn btn-default" type="button"
-            ng-click="goClickHandler()"
-            on-enter="goClickHandler">
+        <button class="btn btn-primary" type="button"
+            ng-click="runTests()"
+            on-enter="runTests">
             Go!
         </button>
     </span>
@@ -31,8 +31,9 @@
 </div>
 
 <div id="checklist" class="well">
+
     <div class="checkbox"
-        ng-repeat="entry in logs"
+        ng-repeat="entry in Tester.list"
         ng-class="{ 'started': entry.started, 'success': (entry.success == true), 'failed': (entry.success == false), 'error': !!entry.error }">
         <label>
             {{ entry.label }}
@@ -43,16 +44,19 @@
         <small class="checklist-error-hint" ng-bind-html-unsafe="entry.error.hint"></small>
 
         <a data-toggle="modal" class="btn btn-warning btn-xs"
-            ng-click="entry.openModal('error')"
-            ng-show="entry.error.data">Details</a>
+            ng-click="entry.modal.open()"
+            ng-show="entry.modal"
+            ng-bind-html-unsafe="entry.modal.link">
+        </a>
 
-        <a data-toggle="modal" class="btn btn-warning btn-xs"
-            ng-click="entry.openModal('stack')"
-            ng-show="entry.error.stack">Stack</a>
-
-        <a data-toggle="modal" class="btn btn-success btn-xs"
-            ng-click="entry.openModal('details')"
-            ng-show="entry.data">Details</a>
+        <!--
+        <div class="checklist-warning" ng-show="entry.warnings.length > 0">
+            <p ng-repeat="warn in entry.warnings">
+                <span>&#9888;</span>
+                <small>{{ warn }}</small>
+            </p>
+        </div>
+        -->
     </p>
 </div>
 

@@ -50,10 +50,38 @@ App.service('TesterService', function($rootScope)
     {
         return this._data.hasOwnProperty(key);
     };
+    TesterService.prototype.count = function(type)
+    {
+        var count = 0;
+
+        for (var i = 0, len = this.list.length; i < len; i++)
+        {
+            test = this.list[i];
+            if (!test.started) continue;
+
+            switch (type)
+            {
+                case 'success':
+                    if (test.success === true) count++;
+                    break;
+
+                case 'fail':
+                    if (test.success === false) count++;
+                    break;
+
+                case 'warning':
+                    count += test.warnings.length;
+                    break;
+            }
+        }
+
+        return count;
+    };
     TesterService.prototype.run = function()
     {
         var runNext, currentTest, index, res, doneFn, failFn, timeout,
-            self = this;
+            self = this,
+            $scope = this.$scope;
 
         index = 0;
 
@@ -62,12 +90,16 @@ App.service('TesterService', function($rootScope)
             currentTest = self.list[index];
             if (!currentTest) return;
 
-            console.log('Running `'+ currentTest.label +'`');
+            console.log('%cRunning `'+ currentTest.label +'`', 'font-weight: bold;');
             currentTest.started = true;
+
+            timeout = setTimeout(function()
+            {
+                failFn.call(self, { message: 'timeout' });
+            }, self.timeoutDuration);
 
             if (currentTest.fn.length >= 1)
             {
-                timeout = setTimeout(failFn, self.timeoutDuration);
                 currentTest.fn.call(currentTest, doneFn, failFn);
             }
             else
@@ -79,24 +111,29 @@ App.service('TesterService', function($rootScope)
 
         failFn = function(err)
         {
-            if (timeout) clearTimeout(timeout);
+            console.log('   %c✘%c fail', 'color: #B94A48; font-size: 1.5em;', 'color: #B94A48;');
 
-            console.log('   > fail');
+            clearTimeout(timeout);
+            timeout = null;
+
             currentTest.success = false;
+            currentTest.error = err;
 
-            self.$scope && self.$scope.$apply();
+            $scope && $scope.$apply();
         }
 
         doneFn = function()
         {
-            if (timeout) clearTimeout(timeout);
+            console.log('   %c✔%c success', 'color: #468847; font-size: 1.5em;', 'color: #468847;');
 
-            console.log('   > success');
+            clearTimeout(timeout);
+            timeout = null;
+
             currentTest.success = true;
             index++;
             runNext();
 
-            self.$scope && self.$scope.$apply();
+            $scope && $scope.$apply();
         };
 
         runNext();
@@ -146,6 +183,7 @@ App.service('TesterService', function($rootScope)
         angular.extend(this, {
             started: false,
             success: null,
+            warnings: [],
             error: null,
             data: null,
             modal: null
@@ -162,6 +200,11 @@ App.service('TesterService', function($rootScope)
     Test.prototype.has = function(key)
     {
         return this._data.hasOwnProperty(key);
+    };
+    Test.prototype.warn = function(message)
+    {
+        this.warnings.push(message);
+        console.log('   %c⚠%c Warning:%c %s', 'color: #F0AD4E; font-size: 1.5em;', 'color: #F0AD4E; font-weight: bold;', 'color: #F0AD4E; font-weight: normal;', message);
     };
 
 

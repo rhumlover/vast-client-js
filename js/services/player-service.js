@@ -1,4 +1,4 @@
-App.service('PlayerService', ['LogService', function(Log)
+App.service('PlayerService', function()
 {
     var Player = (function()
     {
@@ -95,4 +95,4 @@ App.service('PlayerService', ['LogService', function(Log)
     })();
 
     return Player;
-}]);
+});

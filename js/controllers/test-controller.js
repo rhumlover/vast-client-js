@@ -1,216 +1,231 @@
 App.controller('TestCtrl', [
-    '$rootScope', '$scope', '$http', 'LogService', 'PlayerService', 'UtilService',
-    function($rootScope, $scope, $http, Log, Player, Util)
+    '$rootScope', '$scope', '$http', 'PlayerService', 'UtilService', 'TesterService',
+    function($rootScope, $scope, $http, Player, Util, Tester)
     {
-        // Scope properties
-        $scope.vastUrl = 'http://localhost/vast-client-js/test/staticparser-ok.xml';
-        $scope.logs = Log.list;
-        $scope.wantedFormat = 'video/mp4';
+        Tester.init({
+            '$scope': $scope
+        });
 
-        $scope.Modal = $rootScope.Modal;
-
-        $scope.goClickHandler = function()
+        Tester.addTest('Valid URL', function(done, fail)
         {
-            var vastUrl;
+            var self = this,
+                err = {
+                    message: null,
+                    data: null,
+                    hint: null
+                };
 
-            Log.reset();
-            Player.reset();
-
-            if (vastUrl = $scope.vastUrl)
+            $.get($scope.vastUrl).always(function(res, status, evt)
             {
-                Log.start('VALID_URL');
-
-                var onParseError = function(e)
+                switch (status)
                 {
-                    var data = '';
+                    case 'success':
+                        Tester.set('xmlSource', evt.responseText);
+                        done();
+                        break;
 
-                    data += '<button type="button" class="btn btn-primary btn-xs" onclick="window.open(\'' + vastUrl + '\'); return false;">Open URL</button>';
-                    data += '<pre>' + Util.htmlEntities(e.responseText) + '</pre>';
-                    // data = '<iframe src="' + vastUrl + '" style="width: 100%;"></iframe>';
+                    case 'parsererror':
+                        err.message = 'Your XML document doesn\'t seems to be well-formed';
+                        err.data = res.responseText;
 
-                    Log.setError('VALID_XML', {
-                        message: 'XML document doesn\'t seems to be wellformed',
-                        data: data
-                    });
-                    $scope.$apply();
+                        Tester.set('parserror', err);
+                        done();
+                        break;
+
+                    case 'error':
+                        err.message = res.statusText + ' (' + res.status + ')';
+
+                        switch (res.statusText)
+                        {
+                            case 'error':
+                                var _navigator;
+                                if ((_navigator = window.navigator) && !_navigator.onLine)
+                                {
+                                    err.hint = 'Check your internet connection, you appears to be offline.';
+                                }
+                                else
+                                {
+                                    err.hint = 'The VAST response seems to not support CORS server-side (Access-Control-Allow-Origin). Check your JavaScript console or network traces for more details';
+                                }
+                                break;
+
+                            case 'Not Found':
+                                err.hint = 'Check your URL'
+                                break;
+                        }
+
+                        fail(err);
+                        break;
                 }
-                var onRequestFail = function(e)
-                {
-                    var message = e.statusText + ' (' + e.status + ')',
-                        hint = '';
+            });
+        });
 
-                    switch (e.statusText)
-                    {
-                        case 'error':
-                            var _navigator;
-                            if ((_navigator = window.navigator) && !_navigator.onLine)
-                            {
-                                hint = 'Check your internet connection, you appears to be offline.';
-                            }
-                            else
-                            {
-                                hint = 'The VAST response seems to not support CORS server-side (Access-Control-Allow-Origin). Check your JavaScript console or network traces for more details';
-                            }
-                            break;
-
-                        case 'Not Found':
-                            hint = 'Check your URL'
-                            break;
-                    }
-
-                    Log.setError('VALID_URL', { message: message, hint: hint });
-                    $scope.$apply();
-                }
-                var onRequestSuccess = function(e)
-                {
-                    Log.setSuccess('VALID_XML');
-                    // Log.setData('VALID_XML', e.responseText);
-                    parseVast(vastUrl);
-                    $scope.$apply();
-                }
-
-                $.get(vastUrl).always(function(res, status, evt)
-                {
-                    switch (status)
-                    {
-                        case 'success':
-                            Log.setSuccess('VALID_URL');
-                            onRequestSuccess.call(null, evt);
-                            break;
-
-                        case 'parsererror':
-                            Log.setSuccess('VALID_URL');
-                            onParseError.call(null, res);
-                            break;
-
-                        case 'error':
-                            // In this case, res == evt
-                            onRequestFail.call(null, res);
-                        default:
-                    }
-                });
-                /*
-                Angular way, but problems with `Access-Control-Allow-Headers "X-Requested-With"`
-                ---------------------------------
-
-                $http.get(vastUrl)
-                    .success(function()
-                    {
-                        Log.setSuccess('VALID_URL');
-                    })
-                    .error(function(e)
-                    {
-                        var status = e.status,
-                            statusText = e.statusText;
-
-                        Log.setFail('VALID_URL');
-                    })
-                */
-            }
-        };
-
-        var parseVast = function(vastUrl)
+        Tester.addTest('Valid XML Response', function()
         {
-            Log.start('VAST_RESPONSE');
+            var err;
 
-            DMVAST.client.get(vastUrl, function(err, response)
+            if (err = Tester.get('parserror'))
+            {
+                this.error = err;
+                this.modal = new Tester.Modal({
+                    link: '+',
+                    title: err.message,
+                    template: 'views/modal-xml-source.html',
+                    data: err.data
+                });
+
+                return false;
+            }
+
+            this.modal = new Tester.Modal({
+                link: '+',
+                title: 'XML Source',
+                template: 'views/modal-xml-source.html',
+                data: Tester.get('xmlSource')
+            });
+
+            return true;
+        });
+
+        Tester.addTest('Valid VAST Response', function(done, fail)
+        {
+            DMVAST.client.get($scope.vastUrl, function(err, response)
             {
                 var vastTracker;
 
                 if (err)
                 {
-                    Log.setError('VAST_RESPONSE', err);
-                    return $scope.$apply();
+                    fail(err);
                 }
 
                 if (response)
                 {
-                    Log.setSuccess('VAST_RESPONSE');
-                    Log.start('VAST_AD');
+                    Tester.set('vastResponse', response);
+                    done();
+                }
+            });
+        });
 
-                    for (var adIdx = 0, adLen = response.ads.length; adIdx < adLen; adIdx++)
+        Tester.addTest('VAST Ad', function(done, fail)
+        {
+            var response = Tester.get('vastResponse'),
+                self = this;
+
+            for (var adIdx = 0, adLen = response.ads.length; adIdx < adLen; adIdx++)
+            {
+                var ad = response.ads[adIdx];
+                for (var creaIdx = 0, creaLen = ad.creatives.length; creaIdx < creaLen; creaIdx++)
+                {
+                    var linearCreative = ad.creatives[creaIdx];
+                    if (linearCreative.type != "linear") continue;
+
+                    for (var mfIdx = 0, mfLen = linearCreative.mediaFiles.length; mfIdx < mfLen; mfIdx++)
                     {
-                        var ad = response.ads[adIdx];
-                        for (var creaIdx = 0, creaLen = ad.creatives.length; creaIdx < creaLen; creaIdx++)
-                        {
-                            var linearCreative = ad.creatives[creaIdx];
-                            if (linearCreative.type != "linear") continue;
+                        var mediaFile = linearCreative.mediaFiles[mfIdx];
+                        if (mediaFile.mimeType != $scope.wantedFormat) continue;
 
-                            for (var mfIdx = 0, mfLen = linearCreative.mediaFiles.length; mfIdx < mfLen; mfIdx++)
-                            {
-                                var mediaFile = linearCreative.mediaFiles[mfIdx];
-                                if (mediaFile.mimeType != $scope.wantedFormat) continue;
+                        vastTracker = new DMVAST.tracker(ad, linearCreative);
 
-                                vastTracker = new DMVAST.tracker(ad, linearCreative);
+                        self.modal = new Tester.Modal({
+                            link: '+',
+                            title: 'Ad Details',
+                            template: 'views/modal-ad-details.html',
+                            data: ad
+                        });
 
-                                Player.on('loadedmetadata', function() { console.log(this.duration); });
-                                Player.on('canplay', function() {vastTracker.load();});
-                                Player.on('timeupdate', function() {vastTracker.setProgress(this.currentTime);});
-                                Player.on('play', function() {vastTracker.setPaused(false);});
-                                Player.on('pause', function() {vastTracker.setPaused(true);});
+                        Tester.set('vastTracker', vastTracker);
+                        Tester.set('vastTracker.ad', ad);
+                        Tester.set('vastTracker.linearCreative', linearCreative);
+                        Tester.set('vastTracker.mediaFile', mediaFile);
+                        break;
+                    }
 
-                                var _trackingEvents = Object.keys(linearCreative),
-                                    _teName, _teUrls;
-                                for (var i = 0, len = _trackingEvents; i < len; i++)
-                                {
-                                    _teName = _trackingEvents[i];
-                                    _teUrls = linearCreative[_teName];
-
-                                    vastTracker.on(_teName, function()
-                                    {
-                                        console.log(_teName, 'called');
-                                    });
-                                }
-
-                                Log.setData('VAST_AD', ad);
-
-                                Player.on('playing', function()
-                                {
-                                    Log.setSuccess('CAN_PLAY_AD');
-                                    $scope.$apply();
-                                })
-
-                                Player.on('error', function(e, err)
-                                {
-                                    Log.setError('CAN_PLAY_AD', err);
-                                    $scope.$apply();
-                                });
-
-                                Player.load(mediaFile.fileURL);
-                                Player.play();
-                                break;
-                            }
-
-                            if (vastTracker)
-                            {
-                                break;
-                            }
-                        }
-
-                        if (vastTracker)
-                        {
-                            break;
-                        }
-                        else
-                        {
-                            // Inform ad server we can't find suitable media file for this ad
-                            DMVAST.util.track(ad.errorURLTemplates, {ERRORCODE: 403});
-                        }
+                    if (vastTracker)
+                    {
+                        break;
                     }
                 }
 
-                if (!vastTracker)
+                if (vastTracker)
                 {
-                    Log.setError('VAST_AD');
-                    // No pre-roll, start video
+                    break;
                 }
-                else
-                {
-                    Log.setSuccess('VAST_AD');
-                }
+            }
 
-                $scope.$apply();
+            if (vastTracker)
+            {
+                done();
+            }
+            else
+            {
+                fail();
+            }
+        });
+
+        Tester.addTest('Can Play Ad', function(done, fail)
+        {
+            var vastTracker = Tester.get('vastTracker'),
+                ad = Tester.get('vastTracker.ad'),
+                linearCreative = Tester.get('vastTracker.linearCreative'),
+                mediaFile = Tester.get('vastTracker.mediaFile'),
+                self = this;
+
+            // var _trackingEvents = Object.keys(linearCreative),
+            //     _teName, _teUrls;
+            // for (var i = 0, len = _trackingEvents; i < len; i++)
+            // {
+            //     _teName = _trackingEvents[i];
+            //     _teUrls = linearCreative[_teName];
+
+            //     vastTracker.on(_teName, function()
+            //     {
+            //         console.log(_teName, 'called');
+            //     });
+            // }
+
+            Player.on('canplay', function() {vastTracker.load();});
+            Player.on('timeupdate', function() {vastTracker.setProgress(this.currentTime);});
+            Player.on('play', function() {vastTracker.setPaused(false);});
+            Player.on('pause', function() {vastTracker.setPaused(true);});
+            Player.on('loadedmetadata', function()
+            {
+                if (Math.abs(this.duration - linearCreative.duration) > 0.2)
+                {
+                    self.warn([
+                        'Linear creative duration does not match current video duration: ',
+                        '(vast) ',
+                        linearCreative.duration,
+                        's / ',
+                        this.duration,
+                        's (video)'
+                    ].join(''));
+                }
             });
-        };
+
+            Player.on('playing', function()
+            {
+                done();
+            })
+
+            Player.on('error', function(e, err)
+            {
+                fail(err);
+            });
+
+            Player.load(mediaFile.fileURL);
+            Player.play();
+        });
+
+        // Scope properties
+        $scope.vastUrl = 'http://localhost/vast-client-js/test/staticparser-ok.xml';
+        $scope.wantedFormat = 'video/mp4';
+        $scope.Tester = Tester;
+
+        $scope.runTests = function()
+        {
+            Player.reset();
+            Tester.reset();
+            Tester.run();
+        }
     }
 ]);

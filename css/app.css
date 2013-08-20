@@ -110,6 +110,15 @@ footer, pre
 {
     content: '✘';
 }
+#checklist .checkbox.warning
+{
+    background-color: #F0AD4E !important;
+    color: #444 !important;
+}
+#checklist .checkbox.warning:before
+{
+    content: ':/';
+}
 .checklist-error
 {
     display: block;
