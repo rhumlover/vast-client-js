@@ -4,13 +4,16 @@
         ng-model="vastUrl"/>
     <span class="input-group-btn">
         <button class="btn btn-primary" type="button"
+            ng-disabled="!vastUrl"
             ng-click="runTests()"
             on-enter="runTests">
             Go!
         </button>
     </span>
 </div>
+
 </br>
+
 <div class="input-group">
     <label class="radio-inline">
         <strong>Wanted format:</strong>
@@ -24,10 +27,6 @@
     <label class="radio-inline">
         <input type="radio" id="inlineCheckbox3" value="video/3gp" ng-model="wantedFormat"> video/3gp
     </label>
-</div>
-
-<div class="player-container">
-    <video id="player"></video>
 </div>
 
 <div id="checklist" class="well">
@@ -57,7 +56,11 @@
             </p>
         </div>
         -->
-    </p>
+    </div>
+</div>
+
+<div class="player-container">
+    <video id="player"></video>
 </div>
 
 <modal></modal>

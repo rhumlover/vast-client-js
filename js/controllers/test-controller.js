@@ -225,6 +225,9 @@ App.controller('TestCtrl', [
 
         $scope.runTests = function()
         {
+            var vastUrl = $scope.vastUrl;
+            if (!vastUrl || !$scope.vastUrl.length) return;
+
             Player.reset();
             Tester.reset();
             Tester.run();

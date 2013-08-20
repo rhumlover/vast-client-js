@@ -54,6 +54,8 @@ footer, pre
 #checklist
 {
     position: relative;
+    padding: 10px 19px;
+    margin-top: 20px;
 }
 #checklist .checkbox
 {
