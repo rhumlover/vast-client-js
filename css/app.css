@@ -6,7 +6,7 @@ body
 {
     font-family: 'Roboto', sans-serif !important;
 }
-footer, pre
+footer/*, pre*/
 {
     font-size: 0.7em;
 }
@@ -125,10 +125,10 @@ footer, pre
 {
     display: block;
 }
-.checklist-error code
+/*.checklist-error code
 {
     white-space: normal;
-}
+}*/
 .checklist-error-hint
 {
     display: block;
