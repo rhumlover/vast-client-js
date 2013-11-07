@@ -147,3 +147,84 @@ footer/*, pre*/
 {
     padding-right: 15px;
 }
+
+
+/**************
+    IPHONE
+**************/
+
+@-webkit-keyframes blinkOnce
+{
+    0%   { background-color: rgba(255,255,255, 0.7); }
+    100% { background-color: rgba(255,255,255, 0.2); }
+}
+@-webkit-keyframes screenshot
+{
+    0%   { -webkit-transform: scale(1); }
+    100% { -webkit-transform: scale(0.2); }
+}
+
+.iphone-ui
+{
+    position: relative;
+    width: 371px;
+    height: 724px;
+    margin: 20px auto;
+}
+.iphone-device,
+.iphone-screenshot
+{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+.iphone-device
+{
+    background: white url('../images/iphone_background.png');
+}
+.iphone-screen
+{
+    position: absolute;
+    top: 120px;
+    left: 27px;
+    width: 320px;
+    height: 480px;
+    background-color: black;
+}
+.iphone-screenshot
+{
+    z-index: 99;
+    opacity: 0;
+    background: rgba(255,255,255, 0.2) url('../images/photo.w.png') no-repeat 50% 50%;
+    -webkit-transition: opacity ease-in-out 100ms;
+}
+.iphone-screenshot:hover
+{
+    opacity: 1;
+    cursor: pointer;
+}
+.iphone-screenshot.animation
+{
+    -webkit-animation: blinkOnce 350ms ease 0 1 normal;
+}
+.iphone-export
+{
+    position: relative;
+    z-index: 98;
+    width: 320px;
+    height: 240px;
+    /*width: 37.1px;
+    height: 72.4px;*/
+    /*width: 371px;
+    height: 724px;*/
+    /*-webkit-transition: all ease-in-out 100ms;*/
+    /*-webkit-transform: scale(0.1);*/
+}
+#can
+{
+    display: block;
+    width: 320px;
+    height: 240px;
+}
