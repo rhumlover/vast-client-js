@@ -219,7 +219,7 @@ App.controller('IPhoneCtrl', [
         });
 
         // Scope properties
-        $scope.vastUrl = 'http://localhost/vast-client-js/test/staticparser-ok.xml';
+        $scope.vastUrl = '';
         $scope.wantedFormat = 'video/mp4';
         $scope.Tester = Tester;
 
